@@ -14,7 +14,6 @@ createRoot(document.getElementById("root")!).render(
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
-        {/* Background global sutil */}
         <Galaxy opacity={0.12} maxStars={80} driftSpeed={1.5} />
         <Toaster />
         <Sonner />
