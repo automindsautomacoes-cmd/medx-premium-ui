@@ -1,15 +1,19 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 // https://vitejs.dev/config/
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+
   return {
     base: '/',
+    
     server: {
       host: "::",
       port: 8080,
     },
+    
     build: {
       sourcemap: false,
       rollupOptions: {
@@ -23,14 +27,18 @@ export default defineConfig(() => {
       },
       chunkSizeWarningLimit: 1000,
     },
+    
     plugins: [react()],
+    
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
       },
     },
+    
     optimizeDeps: {
       include: ['cmdk'],
+      force: true,
     },
   };
 });
