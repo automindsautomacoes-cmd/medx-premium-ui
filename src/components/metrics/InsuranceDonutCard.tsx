@@ -1,18 +1,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 
-export function DoctorPieChartCard() {
+export function InsuranceDonutCard() {
   const data = [
-    { name: 'Dr. Roberto Santos', value: 35, color: '#00FFFF' },
-    { name: 'Dra. Ana Oliveira', value: 25, color: '#5227FF' },
-    { name: 'Dr. Marcos Lima', value: 20, color: '#FF00FF' },
-    { name: 'Outros', value: 20, color: '#333333' },
+    { name: 'Unimed', value: 40, color: '#00FFFF' },
+    { name: 'Bradesco', value: 30, color: '#5227FF' },
+    { name: 'SulAmérica', value: 15, color: '#FF00FF' },
+    { name: 'Particular', value: 15, color: '#FFFFFF' },
   ];
 
   return (
     <Card className="bg-[#0a0a0a]/40 backdrop-blur-xl border-white/5 overflow-hidden">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">Distribuição por Médico</CardTitle>
+        <CardTitle className="text-lg font-semibold">Convênios vs Particular</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[300px] w-full">
@@ -22,10 +22,11 @@ export function DoctorPieChartCard() {
                 data={data}
                 cx="50%"
                 cy="50%"
-                innerRadius={60}
-                outerRadius={80}
-                paddingAngle={5}
+                innerRadius={70}
+                outerRadius={90}
+                paddingAngle={8}
                 dataKey="value"
+                stroke="none"
               >
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
