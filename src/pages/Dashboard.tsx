@@ -1,5 +1,4 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MagicBentoGrid, MagicBentoCard } from '@/components/bento/MagicBento';
 import { Users, Calendar, Activity, Stethoscope } from 'lucide-react';
 import { useDashboardMetrics } from '@/hooks/useDashboardMetrics';
@@ -45,48 +44,62 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout requiredRoles={['owner']}>
-      <div className="p-8 space-y-8 animate-fade-in-up">
+      <div className="p-8 space-y-8 max-w-7xl mx-auto">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Métricas de Atendimento</h1>
-          <p className="text-muted-foreground mt-1">Visão geral do desempenho da clínica</p>
+        <div className="animate-reveal" style={{ animationDelay: '0.1s' }}>
+          <h1 className="text-4xl font-bold tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/50">
+            Métricas de Atendimento
+          </h1>
+          <p className="text-muted-foreground mt-2 text-lg">Visão analítica do desempenho clínico em tempo real</p>
         </div>
 
         {/* Stats Grid - Magic Bento */}
         <MagicBentoGrid>
           {stats.map((stat, index) => (
-            <MagicBentoCard key={index} accent={index % 2 === 0 ? 'primary' : 'accent'}>
-              <div className="flex items-start justify-between pb-2">
-                <div className="text-sm font-medium text-muted-foreground">{stat.title}</div>
-                <stat.icon className="w-4 h-4 text-primary" />
+            <MagicBentoCard 
+              key={index} 
+              accent={index % 2 === 0 ? 'primary' : 'accent'}
+              delay={0.2 + (index * 0.1)}
+            >
+              <div className="flex items-start justify-between pb-4">
+                <div className="text-sm font-semibold uppercase tracking-wider text-muted-foreground/80">{stat.title}</div>
+                <div className="p-2 rounded-xl bg-primary/5 border border-primary/10">
+                  <stat.icon className="w-5 h-5 text-primary" />
+                </div>
               </div>
-              <div className="text-3xl font-bold text-foreground">
+              <div className="text-4xl font-bold text-foreground tracking-tighter">
                 {metrics.loading ? '...' : stat.value}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                <span className={String(stat.trend).startsWith('+') ? 'text-green-500' : String(stat.trend).startsWith('-') ? 'text-red-500' : 'text-muted-foreground'}>
+              <p className="text-sm text-muted-foreground mt-3 flex items-center gap-2">
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                  String(stat.trend).startsWith('+') 
+                    ? 'bg-green-500/10 text-green-400' 
+                    : String(stat.trend).startsWith('-') 
+                    ? 'bg-red-500/10 text-red-400' 
+                    : 'bg-muted text-muted-foreground'
+                }`}>
                   {stat.trend}
-                </span>{' '}
-                {stat.description}
+                </span>
+                <span className="opacity-60">{stat.description}</span>
               </p>
             </MagicBentoCard>
           ))}
         </MagicBentoGrid>
 
         {/* Charts Grid - Linha 1: Gráficos de Tempo */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-reveal" style={{ animationDelay: '0.6s' }}>
           <PeakHoursChartCard />
           <WeekdayChartCard />
         </div>
 
         {/* Charts Grid - Linha 2: Gráficos de Pizza */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-reveal" style={{ animationDelay: '0.7s' }}>
           <DoctorPieChartCard />
           <InsuranceDonutCard />
         </div>
 
         {/* Charts Grid - Linha 3: Gráfico de Diagnósticos */}
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 gap-8 animate-reveal" style={{ animationDelay: '0.8s' }}>
           <DiseaseTreemapCard />
         </div>
       </div>

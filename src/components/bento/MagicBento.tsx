@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { motion } from 'framer-motion';
 
 type MagicBentoGridProps = {
   children: React.ReactNode;
@@ -33,6 +34,7 @@ type MagicBentoCardProps = {
   tiltStrength?: number; // deg
   stars?: boolean;
   disableAnimations?: boolean;
+  delay?: number;
 };
 
 export function MagicBentoCard({
@@ -40,28 +42,18 @@ export function MagicBentoCard({
   accent = 'primary',
   className,
   spotlight = true,
-  spotlightRadius = 400,
+  spotlightRadius = 350,
   magnetism = true,
-  magnetStrength = 10,
+  magnetStrength = 8,
   clickEffect = true,
   contentClassName,
-  tilt = false,
-  tiltStrength = 8,
+  tilt = true,
+  tiltStrength = 5,
   stars = true,
   disableAnimations = false,
+  delay = 0,
 }: MagicBentoCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
-  let scaleOnPress = 1;
-  let translateX = 0;
-  let translateY = 0;
-  let rotateX = 0;
-  let rotateY = 0;
-
-  function applyTransform(element: HTMLDivElement | null) {
-    if (!element) return;
-    const rotate = ` rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-    element.style.transform = `translate3d(${translateX}px, ${translateY}px, 0)` + rotate + ` scale(${scaleOnPress})`;
-  }
 
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
     const element = cardRef.current;
@@ -70,7 +62,6 @@ export function MagicBentoCard({
     const localX = e.clientX - rect.left;
     const localY = e.clientY - rect.top;
 
-    // Spotlight position via CSS variables
     if (spotlight) {
       const xPct = (localX / rect.width) * 100;
       const yPct = (localY / rect.height) * 100;
@@ -80,27 +71,28 @@ export function MagicBentoCard({
       element.style.setProperty('--spot-radius', `${spotlightRadius}px`);
     }
 
-    // Magnetism translate towards cursor
-    if (magnetism) {
+    if (magnetism || tilt) {
       const normalizedX = (localX - rect.width / 2) / (rect.width / 2);
       const normalizedY = (localY - rect.height / 2) / (rect.height / 2);
-      translateX = Math.max(-1, Math.min(1, normalizedX)) * magnetStrength;
-      translateY = Math.max(-1, Math.min(1, normalizedY)) * magnetStrength;
-      const parallaxX = -Math.max(-1, Math.min(1, normalizedX)) * 6;
-      const parallaxY = -Math.max(-1, Math.min(1, normalizedY)) * 6;
-      const el = element as HTMLDivElement;
-      el.style.setProperty('--parallax-x', `${parallaxX}px`);
-      el.style.setProperty('--parallax-y', `${parallaxY}px`);
-      applyTransform(element);
-    }
+      
+      if (magnetism) {
+        const tx = Math.max(-1, Math.min(1, normalizedX)) * magnetStrength;
+        const ty = Math.max(-1, Math.min(1, normalizedY)) * magnetStrength;
+        element.style.setProperty('--mag-x', `${tx}px`);
+        element.style.setProperty('--mag-y', `${ty}px`);
+        
+        const parallaxX = -normalizedX * 10;
+        const parallaxY = -normalizedY * 10;
+        element.style.setProperty('--parallax-x', `${parallaxX}px`);
+        element.style.setProperty('--parallax-y', `${parallaxY}px`);
+      }
 
-    // Tilt effect
-    if (tilt) {
-      const normalizedX = (localX - rect.width / 2) / (rect.width / 2);
-      const normalizedY = (localY - rect.height / 2) / (rect.height / 2);
-      rotateY = Math.max(-1, Math.min(1, normalizedX)) * tiltStrength;
-      rotateX = -Math.max(-1, Math.min(1, normalizedY)) * tiltStrength;
-      applyTransform(element);
+      if (tilt) {
+        const ry = normalizedX * tiltStrength;
+        const rx = -normalizedY * tiltStrength;
+        element.style.setProperty('--tilt-x', `${rx}deg`);
+        element.style.setProperty('--tilt-y', `${ry}deg`);
+      }
     }
   }
 
@@ -108,86 +100,85 @@ export function MagicBentoCard({
     const element = cardRef.current;
     if (!element) return;
     element.style.setProperty('--spot-opacity', '0');
+    element.style.setProperty('--mag-x', '0px');
+    element.style.setProperty('--mag-y', '0px');
     element.style.setProperty('--parallax-x', '0px');
     element.style.setProperty('--parallax-y', '0px');
-    translateX = 0;
-    translateY = 0;
-    scaleOnPress = 1;
-    rotateX = 0;
-    rotateY = 0;
-    applyTransform(element);
+    element.style.setProperty('--tilt-x', '0deg');
+    element.style.setProperty('--tilt-y', '0deg');
   }
 
-  function handleMouseDown() {
-    if (!clickEffect) return;
-    const element = cardRef.current;
-    if (!element) return;
-    scaleOnPress = 0.98;
-    applyTransform(element);
-  }
-
-  function handleMouseUp() {
-    if (!clickEffect) return;
-    const element = cardRef.current;
-    if (!element) return;
-    scaleOnPress = 1;
-    applyTransform(element);
-  }
-  const gradient =
-    accent === 'primary'
-      ? 'from-primary/20 via-primary/10 to-transparent'
-      : 'from-accent/20 via-accent/10 to-transparent';
+  const accentColor = accent === 'primary' ? 'hsl(var(--primary))' : 'hsl(var(--secondary))';
 
   return (
-    <div
+    <motion.div
       ref={cardRef}
-      className={
-        "relative overflow-hidden rounded-2xl border border-white/5 " +
-        (disableAnimations ? "" : "will-change-transform ") +
-        // Ultra Glass look
-        "bg-[#0a0a0a]/40 backdrop-blur-2xl " +
-        "transition-all duration-500 ease-out hover:border-primary/50 " +
-        "hover:shadow-[0_0_30px_rgba(0,255,255,0.05)] " +
-        "hover:translate-y-[-4px] " +
-        (className ? className : '')
-      }
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
+      className={
+        "group relative overflow-hidden rounded-2xl border border-white/5 " +
+        "bg-[#0a0a0a]/40 backdrop-blur-3xl " +
+        "transition-all duration-300 ease-out hover:border-primary/30 " +
+        "hover:shadow-[0_0_40px_rgba(0,255,255,0.03)] " +
+        (className ? className : '')
+      }
+      style={{
+        transform: `translate3d(var(--mag-x, 0px), var(--mag-y, 0px), 0) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))`,
+        perspective: '1000px',
+      } as any}
     >
-      <div className={"pointer-events-none absolute inset-0 bg-gradient-to-br opacity-10 " + gradient} />
+      {/* Dynamic Glow Layer */}
+      <div className="glow-border group-hover:border-primary/20" />
       
-      {/* Scanner Effect */}
-      <div className="scanner-line pointer-events-none" />
+      {/* Animated Accent Gradient */}
+      <div 
+        className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-700"
+        style={{
+          background: `radial-gradient(circle at 50% 120%, ${accentColor} 0%, transparent 70%)`
+        }}
+      />
       
+      {/* Scanner Line */}
+      <div className="scanner-line opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      
+      {/* Spotlight Effect */}
       {spotlight && (
         <div
           className="pointer-events-none absolute inset-0 opacity-[var(--spot-opacity,0)] transition-opacity duration-500"
           style={{
-            background: `radial-gradient(var(--spot-radius, ${spotlightRadius}px) circle at var(--spot-x, 50%) var(--spot-y, 50%), hsl(var(--primary)/0.15), transparent 80%)`,
+            background: `radial-gradient(var(--spot-radius, ${spotlightRadius}px) circle at var(--spot-x, 50%) var(--spot-y, 50%), ${accentColor}15, transparent 80%)`,
           } as React.CSSProperties}
         />
       )}
+
+      {/* Floating Particles/Stars */}
       {stars && (
         <div
-          className="pointer-events-none absolute inset-0 opacity-20"
+          className="pointer-events-none absolute inset-0 opacity-20 transition-transform duration-500 ease-out"
           style={{
             transform: 'translate3d(var(--parallax-x,0px), var(--parallax-y,0px), 0)',
-            backgroundImage: `radial-gradient(1px 1px at 20% 30%, white 50%, transparent 51%),
-              radial-gradient(1px 1px at 70% 60%, white 50%, transparent 51%),
-              radial-gradient(1px 1px at 40% 80%, white 50%, transparent 51%)`,
+            backgroundImage: `radial-gradient(1px 1px at 25% 35%, white 50%, transparent 51%),
+              radial-gradient(1.5px 1.5px at 65% 55%, white 50%, transparent 51%),
+              radial-gradient(1px 1px at 45% 85%, white 50%, transparent 51%),
+              radial-gradient(1px 1px at 85% 15%, white 50%, transparent 51%)`,
             backgroundRepeat: 'no-repeat',
           } as React.CSSProperties}
         />
       )}
+
+      {/* Content */}
       <div className={"relative z-10 " + (contentClassName ? contentClassName : "p-6") }>
         {children}
       </div>
+
+      {/* Ambient Backglow */}
       <div
-        className="pointer-events-none absolute -top-24 -right-24 h-48 w-48 rounded-full bg-primary/10 blur-[100px]"
+        className="pointer-events-none absolute -bottom-12 -right-12 h-32 w-32 rounded-full bg-primary/5 blur-[80px] transition-transform duration-700 ease-out"
         style={{ transform: 'translate3d(var(--parallax-x,0px), var(--parallax-y,0px), 0)' }}
       />
-    </div>
+    </motion.div>
   );
 }
